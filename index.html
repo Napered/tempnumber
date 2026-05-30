@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>대한민국 임시 번호판 커스텀 생성기</title>
+<style>
+    body {
+        font-family: 'Arial', sans-serif;
+        background-color: #f0f2f5;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 30px;
+        box-sizing: border-box;
+        min-height: 100vh;
+    }
+    .container {
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        max-width: 800px;
+        width: 100%;
+        margin-bottom: 30px;
+    }
+    .form-section {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+    .form-section label {
+        font-weight: bold;
+        color: #333;
+    }
+    .form-section input {
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 1em;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .license-plate-display {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 20px;
+        position: relative;
+    }
+    .license-plate {
+        width: 520px;
+        height: 110px;
+        background-color: white;
+        border: 2px solid #333;
+        border-radius: 8px;
+        padding: 0; /* 좌우 공백 제거 */
+        position: relative;
+        box-shadow: none;
+        overflow: hidden;
+    }
+    .left-section {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        line-height: 1.2;
+        font-size: 25px;
+        color: #333;
+        padding-left: 10px;
+    }
+    .right-section {
+        position: absolute;
+        top: 50%;
+        right: 0;
+        transform: translateY(-50%);
+        font-size: 100px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding-right: 10px;
+    }
+    .diagonal-lines {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        background-image: 
+            linear-gradient(to bottom, transparent 43%, red 43%, red 48%, transparent 48%),
+            linear-gradient(to bottom, transparent 64%, red 64%, red 69%, transparent 69%);
+        background-size: 100% 100%;
+        transform: rotate(-30deg);
+    }
+    .plate-number-text {
+        position: relative;
+        z-index: 2;
+        color: black;
+    }
+    .download-btn {
+        padding: 10px 70px;
+        font-size: 1em;
+        color: white;
+        background-color: #007bff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .download-btn:hover {
+        background-color: #0056b3;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>대한민국 임시 번호판 커스텀 생성기</h1>
+    <p>원하는 정보를 입력하고, 생성된 번호판을 이미지로 다운로드하세요.</p>
+
+    <div class="form-section">
+        <label for="valid-period">유효 기간 (예: 2024.01.01 ~ 2024.01.02)</label>
+        <input type="text" id="valid-period" value="2025.09.03 ~ 2025.09.12">
+
+        <label for="issuing-office">발급처 (예: 서울시)</label>
+        <input type="text" id="issuing-office" value="서울시">
+
+        <label for="plate-number">번호 (6자리 숫자만 입력)</label>
+        <input type="text" id="plate-number" value="123456" maxlength="6" pattern="\d{6}">
+    </div>
+
+    <div class="license-plate-display">
+        <div class="license-plate">
+            <div class="left-section">
+                <span id="display-valid-period"></span>
+                <span id="display-issuing-office"></span>
+            </div>
+            <div class="right-section">
+                <div class="diagonal-lines"></div>
+                <span id="display-plate-number" class="plate-number-text"></span>
+            </div>
+        </div>
+    </div>
+
+    <button class="download-btn" id="download-btn">번호판 이미지 다운로드</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+    const validPeriodInput = document.getElementById('valid-period');
+    const issuingOfficeInput = document.getElementById('issuing-office');
+    const plateNumberInput = document.getElementById('plate-number');
+    const downloadBtn = document.getElementById('download-btn');
+
+    const displayValidPeriod = document.getElementById('display-valid-period');
+    const displayIssuingOffice = document.getElementById('display-issuing-office');
+    const displayPlateNumber = document.getElementById('display-plate-number');
+
+    function updateLicensePlate() {
+        const dates = validPeriodInput.value.split('~').map(s => s.trim());
+        if (dates.length === 2) {
+            displayValidPeriod.innerHTML = dates[0] + ' ~<br>' + dates[1];
+        } else {
+            displayValidPeriod.textContent = validPeriodInput.value || '유효기간';
+        }
+        displayIssuingOffice.textContent = issuingOfficeInput.value || '발급처';
+        displayPlateNumber.textContent = plateNumberInput.value.replace(/[^0-9]/g, '').slice(0, 6) || '123456';
+    }
+
+    function downloadPlateImage() {
+        const plate = document.querySelector(".license-plate");
+        html2canvas(plate, {
+            scale: 2,
+            backgroundColor: null,
+            useCORS: true
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = '임시_번호판.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+    }
+
+    plateNumberInput.addEventListener('input', updateLicensePlate);
+    validPeriodInput.addEventListener('input', updateLicensePlate);
+    issuingOfficeInput.addEventListener('input', updateLicensePlate);
+    downloadBtn.addEventListener('click', downloadPlateImage);
+
+    updateLicensePlate();
+</script>
+
+</body>
+</html>
